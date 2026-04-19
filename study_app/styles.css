@@ -65,6 +65,7 @@ summary {
 .topbar,
 .hero-card,
 .chapter-card,
+.concept-step,
 .overview-card,
 .assignment-page,
 .question-card,
@@ -108,6 +109,7 @@ summary {
 .sidebar__brand h1,
 .hero-card h3,
 .chapter-card h3,
+.concept-step__intro h3,
 .overview-card h3,
 .question-card__title,
 .loading-card h3,
@@ -149,6 +151,11 @@ summary {
   margin-top: 10px;
 }
 
+.ghost-button.is-active {
+  background: linear-gradient(135deg, rgba(20, 122, 126, 0.92), rgba(12, 89, 94, 0.92));
+  color: white;
+}
+
 .folder-tree,
 .assignment-links,
 .question-grid,
@@ -158,7 +165,9 @@ summary {
 .list-grid,
 .chapter-grid,
 .search-grid,
-.stats-grid {
+.stats-grid,
+.concept-track,
+.concept-strip {
   display: grid;
   gap: 16px;
 }
@@ -273,6 +282,7 @@ summary {
 
 .hero-card,
 .chapter-card,
+.concept-step,
 .overview-card,
 .assignment-page,
 .question-card,
@@ -360,7 +370,8 @@ summary {
 .chapter-grid,
 .formula-grid,
 .list-grid,
-.search-grid {
+.search-grid,
+.concept-strip {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
@@ -381,6 +392,140 @@ summary {
 .muted-line {
   color: var(--muted);
   font-size: 0.94rem;
+}
+
+.concept-strip {
+  gap: 12px;
+}
+
+.concept-strip-card {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid rgba(24, 33, 45, 0.08);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+  text-align: left;
+  display: grid;
+  gap: 6px;
+}
+
+.concept-strip-card:hover {
+  background: rgba(20, 122, 126, 0.12);
+}
+
+.concept-strip-card__index,
+.concept-strip-card__eyebrow {
+  margin: 0;
+}
+
+.concept-strip-card__index {
+  color: var(--teal);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.concept-strip-card__eyebrow {
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.concept-strip-card strong {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.08rem;
+  color: var(--navy);
+  line-height: 1.15;
+}
+
+.concept-track {
+  gap: 20px;
+}
+
+.concept-step {
+  display: grid;
+  gap: 18px;
+}
+
+.concept-step__header,
+.concept-step__body {
+  display: grid;
+  gap: 18px;
+}
+
+.concept-step__header {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.concept-step__body {
+  grid-template-columns: 0.9fr 1.1fr;
+}
+
+.concept-step__number,
+.concept-step__section-title {
+  font-family: "Fraunces", Georgia, serif;
+}
+
+.concept-step__number {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--teal), #0f6368);
+  color: white;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.concept-step__intro {
+  display: grid;
+  gap: 10px;
+}
+
+.concept-step__intro h3,
+.concept-step__section-title {
+  margin: 0;
+}
+
+.concept-step__intro h3 {
+  font-size: clamp(1.65rem, 2.2vw, 2rem);
+  line-height: 1.05;
+}
+
+.concept-step__intro p,
+.concept-step__meta p {
+  margin: 0;
+}
+
+.concept-step__meta {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+
+.concept-step__next {
+  max-width: 220px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(20, 122, 126, 0.08);
+  color: var(--muted);
+}
+
+.concept-step__section {
+  display: grid;
+  gap: 14px;
+}
+
+.concept-step__section-title {
+  font-size: 1.28rem;
+  color: var(--navy);
 }
 
 .diagram-frame {
@@ -504,7 +649,9 @@ summary {
   .topbar,
   .hero-grid,
   .assignment-page__hero,
-  .stats-grid {
+  .stats-grid,
+  .concept-step__header,
+  .concept-step__body {
     grid-template-columns: 1fr;
   }
 

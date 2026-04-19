@@ -12,6 +12,7 @@ const elements = {
   searchInput: document.getElementById("search-input"),
   topbarTitle: document.getElementById("topbar-title"),
   dashboardButton: document.getElementById("dashboard-button"),
+  conceptsButton: document.getElementById("concepts-button"),
   firstAssignmentButton: document.getElementById("first-assignment-button"),
 };
 
@@ -45,6 +46,9 @@ function parseRoute() {
   if (!hash) {
     return { type: "dashboard" };
   }
+  if (parts[0] === "concepts") {
+    return { type: "concepts" };
+  }
   if (parts[0] === "chapter" && parts[1]) {
     return { type: "chapter", key: parts[1] };
   }
@@ -61,6 +65,10 @@ function parseRoute() {
 function setRoute(route) {
   if (route.type === "dashboard") {
     window.location.hash = "";
+    return;
+  }
+  if (route.type === "concepts") {
+    window.location.hash = "concepts";
     return;
   }
   if (route.type === "chapter") {
@@ -233,11 +241,12 @@ function formulaMarkup(formula) {
 
 
 function listMarkup(title, items) {
+  const entries = items && items.length ? items : ["No notes available yet."];
   return `
     <article class="list-card">
       <h4>${escapeHtml(title)}</h4>
       <ul class="bullet-list">
-        ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+        ${entries.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
       </ul>
     </article>
   `;
@@ -309,8 +318,10 @@ function renderDashboard() {
             <span class="chip">Exact folder tree</span>
             <span class="chip">Searchable screenshots</span>
             <span class="chip">Chapter guides</span>
+            <span class="chip">Concept path</span>
           </div>
           <div class="assignment-links">
+            ${buttonCard("Concepts In Order", "Study the whole folder as one guided sequence.", `data-route="concepts"`)}
             ${buttonCard(first.name, "Start with the first captured homework.", `data-route="assignment" data-slug="${escapeHtml(first.slug)}"`)}
           </div>
         </div>
@@ -351,6 +362,157 @@ function renderDashboard() {
 }
 
 
+function conceptJumpMarkup(chapter, index) {
+  return `
+    <button class="concept-strip-card" type="button" data-route="chapter" data-key="${escapeHtml(chapter.key)}">
+      <span class="concept-strip-card__index">${String(index + 1).padStart(2, "0")}</span>
+      <p class="concept-strip-card__eyebrow">${escapeHtml(chapterLabel(chapter.number))}</p>
+      <strong>${escapeHtml(chapter.title)}</strong>
+    </button>
+  `;
+}
+
+
+function formulaGridMarkup(formulas) {
+  if (!formulas || !formulas.length) {
+    return `<div class="empty-state">No formulas were captured for this concept block yet.</div>`;
+  }
+  return `<div class="formula-grid">${formulas.map(formulaMarkup).join("")}</div>`;
+}
+
+
+function conceptStepMarkup(chapter, index, nextChapter) {
+  const firstAssignment = chapter.assignments[0] || null;
+  const lastAssignment = chapter.assignments[chapter.assignments.length - 1] || null;
+  const pathParts = ["PY208"];
+
+  if (firstAssignment) {
+    pathParts.push(firstAssignment.name);
+  }
+  if (lastAssignment && lastAssignment.slug !== firstAssignment?.slug) {
+    pathParts.push(lastAssignment.name);
+  }
+
+  return `
+    <article class="concept-step" id="concept-${escapeHtml(chapter.key)}">
+      <div class="concept-step__header">
+        <div class="concept-step__number">${String(index + 1).padStart(2, "0")}</div>
+        <div class="concept-step__intro">
+          <p class="eyebrow">${escapeHtml(chapterLabel(chapter.number))}</p>
+          <h3>${escapeHtml(chapter.title)}</h3>
+          <p>${escapeHtml(chapter.summary)}</p>
+          ${pathMarkup(pathParts)}
+        </div>
+        <div class="concept-step__meta">
+          <span class="chip">${chapter.assignmentCount} assignments</span>
+          <span class="chip">${chapter.questionCount} questions</span>
+          <p class="concept-step__next">
+            ${escapeHtml(
+              nextChapter
+                ? `Next up: ${chapterLabel(nextChapter.number)} ${nextChapter.title}`
+                : "Final concept block in the captured folder.",
+            )}
+          </p>
+        </div>
+      </div>
+
+      <div class="concept-step__body">
+        <section class="overview-card">
+          <p class="eyebrow">Mental Model</p>
+          ${diagramMarkup(chapter.diagramType)}
+          <p>
+            ${escapeHtml(
+              nextChapter
+                ? `Lock this down before moving into ${nextChapter.title}.`
+                : "Use this final unit to connect the full course into one picture.",
+            )}
+          </p>
+        </section>
+        <div class="list-grid">
+          ${listMarkup("Concepts to learn", chapter.learningObjectives)}
+          ${listMarkup("Study in this order", chapter.studyChecklist)}
+          ${listMarkup("Mistakes to avoid", chapter.pitfalls)}
+        </div>
+      </div>
+
+      <div class="concept-step__section">
+        <h4 class="concept-step__section-title">Formula Board</h4>
+        ${formulaGridMarkup(chapter.formulaBoard)}
+      </div>
+
+      <div class="concept-step__section">
+        <h4 class="concept-step__section-title">Assignments That Reinforce This Unit</h4>
+        <div class="assignment-links">
+          ${buttonCard(
+            `Open ${chapterLabel(chapter.number)} guide`,
+            "See the focused chapter page with formulas, diagrams, and linked homework.",
+            `data-route="chapter" data-key="${escapeHtml(chapter.key)}"`,
+          )}
+          ${
+            chapter.assignments
+              .map((assignment) =>
+                buttonCard(
+                  assignment.name,
+                  assignment.focus,
+                  `data-route="assignment" data-slug="${escapeHtml(assignment.slug)}"`,
+                ),
+              )
+              .join("")
+          }
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+
+function renderConcepts() {
+  const chapters = [...state.data.chapters].sort((left, right) => left.number - right.number);
+  const firstChapter = chapters[0];
+  const lastChapter = chapters[chapters.length - 1];
+
+  elements.topbarTitle.textContent = "Concepts In Order";
+  elements.content.innerHTML = `
+    <article class="hero-card">
+      <div class="hero-grid">
+        <div class="section-block">
+          <p class="eyebrow">Guided Sequence</p>
+          <h3>Learn every concept in the same order the folder builds it.</h3>
+          <p>
+            This tab turns the captured PY208 material into one continuous lesson path. Each stop includes
+            the core idea, a diagram, the formulas, the study checklist, and the exact assignment folders
+            that practice that concept.
+          </p>
+          <div class="chip-row">
+            <span class="chip">${chapters.length} ordered concept blocks</span>
+            <span class="chip">${state.data.stats.assignmentCount} linked assignments</span>
+            <span class="chip">${state.data.stats.questionCount} screenshot prompts</span>
+          </div>
+          <p class="muted-line">
+            Sequence covered: ${escapeHtml(chapterLabel(firstChapter.number))} through ${escapeHtml(chapterLabel(lastChapter.number))}.
+          </p>
+        </div>
+        <div class="overview-card">
+          <p class="eyebrow">Jump To A Unit</p>
+          <div class="concept-strip">
+            ${chapters.map(conceptJumpMarkup).join("")}
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <section class="content">
+      <h3 class="section-title">Ordered Concept Track</h3>
+      <div class="concept-track">
+        ${chapters
+          .map((chapter, index) => conceptStepMarkup(chapter, index, chapters[index + 1] || null))
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
+
 function renderChapter(chapter) {
   elements.topbarTitle.textContent = `${chapterLabel(chapter.number)} Guide`;
   elements.content.innerHTML = `
@@ -377,13 +539,14 @@ function renderChapter(chapter) {
         <h3 class="section-title">Core Ideas</h3>
         <div class="list-grid">
           ${listMarkup("What to master", chapter.learningObjectives)}
+          ${listMarkup("Study order", chapter.studyChecklist)}
           ${listMarkup("Common pitfalls", chapter.pitfalls)}
         </div>
       </section>
 
       <section class="content">
         <h3 class="section-title">Formula Board</h3>
-        <div class="formula-grid">${chapter.formulaBoard.map(formulaMarkup).join("")}</div>
+        ${formulaGridMarkup(chapter.formulaBoard)}
       </section>
 
       <section class="content">
@@ -521,7 +684,7 @@ function renderSearch(query) {
     <article class="hero-card">
       <p class="eyebrow">Search Results</p>
       <h3>${results.length} matches for "${escapeHtml(query)}"</h3>
-      <p>Results are matched against chapter labels, assignment focus text, and OCR-extracted prompt content.</p>
+      <p>Results are matched against assignment descriptions, tags, and OCR-extracted prompt content.</p>
     </article>
     ${
       results.length
@@ -561,6 +724,11 @@ function renderRoute() {
     return;
   }
 
+  if (state.route.type === "concepts") {
+    renderConcepts();
+    return;
+  }
+
   if (state.route.type === "chapter") {
     const chapter = chapterMap.get(state.route.key);
     if (chapter) {
@@ -591,6 +759,8 @@ function renderRoute() {
 
 function refresh() {
   renderFolderTree();
+  elements.dashboardButton.classList.toggle("is-active", !state.query.trim() && state.route.type === "dashboard");
+  elements.conceptsButton.classList.toggle("is-active", !state.query.trim() && state.route.type === "concepts");
   renderRoute();
 }
 
@@ -600,8 +770,12 @@ function handleAction(target) {
   if (!route) {
     return;
   }
+  state.query = "";
+  elements.searchInput.value = "";
   if (route === "dashboard") {
     state.route = { type: "dashboard" };
+  } else if (route === "concepts") {
+    state.route = { type: "concepts" };
   } else if (route === "chapter") {
     state.route = { type: "chapter", key: target.dataset.key };
   } else if (route === "assignment") {
@@ -642,6 +816,7 @@ function bindEvents() {
   });
 
   elements.dashboardButton.addEventListener("click", () => handleAction({ dataset: { route: "dashboard" } }));
+  elements.conceptsButton.addEventListener("click", () => handleAction({ dataset: { route: "concepts" } }));
   elements.firstAssignmentButton.addEventListener("click", () => {
     const first = state.data?.assignments?.[0];
     if (first) {
