@@ -1,0 +1,41 @@
+{
+  "start_url": "https://education.wiley.com/ngonboard/index.html#/StudentDashboard",
+  "assignments_url": "https://learn.wileyplus.com/courses/197068/assignments",
+  "output_dir": "PY208",
+  "profile_dir": ".playwright-profile",
+  "headless": false,
+  "settle_timeout_ms": 1800,
+  "start_assignment_name": "CH1 HW1 Vector Review",
+  "homework_include_patterns": [
+    "hw",
+    "homework"
+  ],
+  "homework_exclude_patterns": [
+    "quiz",
+    "exam",
+    "test"
+  ],
+  "homework_context_required_patterns": [
+    "assignment"
+  ],
+  "homework_link_selectors": [
+    "a.ig-title"
+  ],
+  "launch_button_selectors": [
+    "button:has-text('OPEN ASSIGNMENT')"
+  ],
+  "player_entry_button_selectors": [
+    "button:has-text('REVIEW ASSIGNMENT')",
+    "button:has-text('CONTINUE ASSIGNMENT')",
+    "button:has-text('START ASSIGNMENT')",
+    "button:has-text('RESUME ASSIGNMENT')"
+  ],
+  "player_tab_selectors": [
+    "button:has-text('QUESTIONS')"
+  ],
+  "next_part_selectors": [
+    "button:has-text('Next Part')",
+    "[aria-label*='Next part']",
+    "[data-testid*='next-part']"
+  ]
+}

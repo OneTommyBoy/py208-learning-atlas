@@ -1,0 +1,7 @@
+.venv/
+.playwright-profile/
+__pycache__/
+netlify_publish/
+study_app_server.out.log
+study_app_server.err.log
+keep_on_mining_worlds/profiles/*.local.json

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PY208 Learning Atlas</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="sidebar">
+        <div class="sidebar__brand">
+          <p class="eyebrow">Course Folder</p>
+          <h1>PY208 Learning Atlas</h1>
+          <p class="sidebar__lede">
+            A local study app built directly from the captured `PY208` folder.
+          </p>
+        </div>
+
+        <div class="sidebar__panel">
+          <button id="dashboard-button" class="ghost-button" type="button">Course Dashboard</button>
+          <button id="first-assignment-button" class="ghost-button" type="button">Start At The Beginning</button>
+        </div>
+
+        <div class="sidebar__panel">
+          <p class="eyebrow">Exact Folder Layout</p>
+          <div id="folder-tree" class="folder-tree" aria-label="PY208 folder tree"></div>
+        </div>
+
+        <div class="sidebar__panel sidebar__panel--compact">
+          <p class="eyebrow">Study Flow</p>
+          <ul class="mini-list">
+            <li>Browse the real folder structure.</li>
+            <li>Open any assignment or question image.</li>
+            <li>Use search to find topics across screenshots.</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Study Navigator</p>
+            <h2 id="topbar-title">Loading course content...</h2>
+          </div>
+
+          <div class="topbar__actions">
+            <label class="search-field">
+              <span class="search-field__label">Search</span>
+              <input
+                id="search-input"
+                type="search"
+                placeholder="Search prompts, chapters, or ideas"
+                autocomplete="off"
+              >
+            </label>
+          </div>
+        </header>
+
+        <section id="content" class="content">
+          <article class="loading-card">
+            <p class="eyebrow">Preparing</p>
+            <h3>Loading the course map...</h3>
+            <p>The app is reading structured data generated from the `PY208` screenshots.</p>
+          </article>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+[build]
+  command = "python -m pip install -r requirements-netlify.txt && python build_netlify_publish.py --rebuild-data"
+  publish = "netlify_publish"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
