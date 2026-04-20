@@ -268,6 +268,88 @@ CHAPTER_GUIDES = {
 }
 
 
+FORMULA_LATEX = {
+    1: {
+        "Magnitude": r"|\vec{v}| = \sqrt{v_x^2 + v_y^2}",
+        "Equality": r"\text{same magnitude + same direction}",
+        "Opposite": r"\vec{u} = -\vec{v}",
+    },
+    3: {
+        "Force magnitude": r"F = k \frac{|q_1 q_2|}{r^2}",
+        "Field relation": r"E = \frac{F}{q_{\text{test}}}",
+        "Vector idea": r"\text{pick }\hat{r}\text{ from source to target}",
+    },
+    13: {
+        "Force from field": r"\vec{F} = q\vec{E}",
+        "Point-charge field": r"E = k \frac{|q|}{r^2}",
+        "Superposition": r"\vec{E}_{\text{net}} = \sum \vec{E}_i",
+    },
+    14: {
+        "Conservation": r"Q_{\text{initial}} = Q_{\text{final}}",
+        "Equilibrium": r"E_{\text{net}} = 0 \text{ inside a conductor}",
+        "Quantization": r"Q = ne",
+    },
+    15: {
+        "Charge element": r"dq = \lambda\,dx,\ \sigma\,dA,\ \text{or}\ \rho\,dV",
+        "Field element": r"dE = k \frac{dq}{r^2}",
+        "Build the answer": r"\vec{E} = \int d\vec{E}",
+    },
+    16: {
+        "Potential energy": r"\Delta U = q\Delta V",
+        "Energy conservation": r"\Delta K = -\Delta U",
+        "Uniform field": r"\Delta V = -Ed\cos\theta",
+    },
+    17: {
+        "Current": r"I = \frac{\Delta Q}{\Delta t}",
+        "Charge counting": r"Q = Ne",
+        "Straight wire field": r"B = \frac{\mu_0 I}{2\pi r}",
+    },
+    18: {
+        "Ohm's law": r"V = IR",
+        "Resistance": r"R = \rho \frac{L}{A}",
+        "Current density": r"\vec{J} = \sigma \vec{E}",
+    },
+    19: {
+        "Microscopic field": r"E = \frac{J}{\sigma}",
+        "Current density": r"J = \frac{I}{A}",
+        "RC decay": r"I(t) = I_0 e^{-t/(RC)}",
+    },
+    20: {
+        "Magnetic force": r"\vec{F} = q\vec{v} \times \vec{B}",
+        "Magnitude": r"|\vec{F}| = |q|vB\sin\theta",
+        "Straight path": r"qE = qvB",
+    },
+    21: {
+        "Electric flux": r"\Phi_E = EA\cos\theta",
+        "Magnetic flux": r"\Phi_B = BA\cos\theta",
+        "General form": r"\Phi = \int \vec{F}\cdot d\vec{A}",
+    },
+    22: {
+        "Faraday's law": r"\oint \vec{E}\cdot d\vec{\ell} = -\frac{d\Phi_B}{dt}",
+        "Lenz idea": r"\text{induced effect opposes flux change}",
+        "Field shape": r"\text{induced }\vec{E}\text{ forms loops}",
+    },
+    23: {
+        "Wave speed": r"c = f\lambda",
+        "Field ratio": r"\frac{E}{B} = c",
+        "Geometry": r"\vec{E} \perp \vec{B} \perp \text{propagation}",
+    },
+}
+
+
+def formula_payloads(chapter: int, guide: dict) -> list[dict]:
+    latex_map = FORMULA_LATEX.get(chapter, {})
+    return [
+        {
+            "label": label,
+            "equation": equation,
+            "latex": latex_map.get(label),
+            "note": guide["summary"],
+        }
+        for label, equation in guide["formulas"]
+    ]
+
+
 NOISE_BITS = [
     "you've completed all of the work in this assignment",
     "question ",
@@ -451,10 +533,7 @@ def build_course_data() -> dict:
                 "summary": guide["summary"],
                 "diagramType": guide["diagramType"],
                 "learningObjectives": guide["objectives"],
-                "formulaBoard": [
-                    {"label": label, "equation": equation, "note": guide["summary"]}
-                    for label, equation in guide["formulas"]
-                ],
+                "formulaBoard": formula_payloads(chapter, guide),
                 "studyChecklist": guide["objectives"],
                 "pitfalls": guide["pitfalls"],
                 "assignmentCount": len(chapter_assignments),

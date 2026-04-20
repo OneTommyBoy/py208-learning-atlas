@@ -229,11 +229,29 @@ function buttonCard(label, body, attrs) {
 }
 
 
+function formulaDisplayMarkup(formula) {
+  const fallback = `<div class="formula-card__fallback">${escapeHtml(formula.equation)}</div>`;
+  if (!formula.latex || !window.katex?.renderToString) {
+    return fallback;
+  }
+
+  try {
+    return `
+      <div class="formula-card__equation" aria-label="${escapeHtml(formula.equation)}">
+        ${window.katex.renderToString(formula.latex, { displayMode: true, throwOnError: false })}
+      </div>
+    `;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+
 function formulaMarkup(formula) {
   return `
     <article class="formula-card">
       <h4>${escapeHtml(formula.label)}</h4>
-      <code>${escapeHtml(formula.equation)}</code>
+      ${formulaDisplayMarkup(formula)}
       <p>${escapeHtml(formula.note)}</p>
     </article>
   `;

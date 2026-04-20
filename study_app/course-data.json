@@ -1429,16 +1429,19 @@
         {
           "label": "Magnitude",
           "equation": "|v| = sqrt(vx^2 + vy^2)",
+          "latex": "|\\vec{v}| = \\sqrt{v_x^2 + v_y^2}",
           "note": "Build fluency with vector magnitude, direction, equality, and components."
         },
         {
           "label": "Equality",
           "equation": "same magnitude + same direction",
+          "latex": "\\text{same magnitude + same direction}",
           "note": "Build fluency with vector magnitude, direction, equality, and components."
         },
         {
           "label": "Opposite",
           "equation": "u = -v",
+          "latex": "\\vec{u} = -\\vec{v}",
           "note": "Build fluency with vector magnitude, direction, equality, and components."
         }
       ],
@@ -1667,16 +1670,19 @@
         {
           "label": "Force magnitude",
           "equation": "F = k |q1 q2| / r^2",
+          "latex": "F = k \\frac{|q_1 q_2|}{r^2}",
           "note": "Review charge interactions, source-target vectors, and inverse-square force logic."
         },
         {
           "label": "Field relation",
           "equation": "E = F / q_test",
+          "latex": "E = \\frac{F}{q_{\\text{test}}}",
           "note": "Review charge interactions, source-target vectors, and inverse-square force logic."
         },
         {
           "label": "Vector idea",
           "equation": "pick r_hat from source to target",
+          "latex": "\\text{pick }\\hat{r}\\text{ from source to target}",
           "note": "Review charge interactions, source-target vectors, and inverse-square force logic."
         }
       ],
@@ -1840,16 +1846,19 @@
         {
           "label": "Force from field",
           "equation": "F = q E",
+          "latex": "\\vec{F} = q\\vec{E}",
           "note": "Translate electric-field arrows into force, source-charge, and symmetry reasoning."
         },
         {
           "label": "Point-charge field",
           "equation": "E = k |q| / r^2",
+          "latex": "E = k \\frac{|q|}{r^2}",
           "note": "Translate electric-field arrows into force, source-charge, and symmetry reasoning."
         },
         {
           "label": "Superposition",
           "equation": "E_net = sum(E_i)",
+          "latex": "\\vec{E}_{\\text{net}} = \\sum \\vec{E}_i",
           "note": "Translate electric-field arrows into force, source-charge, and symmetry reasoning."
         }
       ],
@@ -2183,16 +2192,19 @@
         {
           "label": "Conservation",
           "equation": "Q_initial = Q_final",
+          "latex": "Q_{\\text{initial}} = Q_{\\text{final}}",
           "note": "Track transferred charge and explain conductor equilibrium and polarization."
         },
         {
           "label": "Equilibrium",
           "equation": "E_net = 0 inside a conductor",
+          "latex": "E_{\\text{net}} = 0 \\text{ inside a conductor}",
           "note": "Track transferred charge and explain conductor equilibrium and polarization."
         },
         {
           "label": "Quantization",
           "equation": "Q = n e",
+          "latex": "Q = ne",
           "note": "Track transferred charge and explain conductor equilibrium and polarization."
         }
       ],
@@ -2565,16 +2577,19 @@
         {
           "label": "Charge element",
           "equation": "dq = lambda dx, sigma dA, or rho dV",
+          "latex": "dq = \\lambda\\,dx,\\ \\sigma\\,dA,\\ \\text{or}\\ \\rho\\,dV",
           "note": "Move from point charges to rods, disks, and other continuous charge distributions."
         },
         {
           "label": "Field element",
           "equation": "dE = k dq / r^2",
+          "latex": "dE = k \\frac{dq}{r^2}",
           "note": "Move from point charges to rods, disks, and other continuous charge distributions."
         },
         {
           "label": "Build the answer",
           "equation": "E = integral(dE)",
+          "latex": "\\vec{E} = \\int d\\vec{E}",
           "note": "Move from point charges to rods, disks, and other continuous charge distributions."
         }
       ],
@@ -2882,16 +2897,19 @@
         {
           "label": "Potential energy",
           "equation": "Delta U = q Delta V",
+          "latex": "\\Delta U = q\\Delta V",
           "note": "Connect fields to potential, potential energy, and motion through voltage differences."
         },
         {
           "label": "Energy conservation",
           "equation": "Delta K = -Delta U",
+          "latex": "\\Delta K = -\\Delta U",
           "note": "Connect fields to potential, potential energy, and motion through voltage differences."
         },
         {
           "label": "Uniform field",
           "equation": "Delta V = -E d cos(theta)",
+          "latex": "\\Delta V = -Ed\\cos\\theta",
           "note": "Connect fields to potential, potential energy, and motion through voltage differences."
         }
       ],
@@ -3369,16 +3387,19 @@
         {
           "label": "Current",
           "equation": "I = Delta Q / Delta t",
+          "latex": "I = \\frac{\\Delta Q}{\\Delta t}",
           "note": "Connect charge flow rates to current and to the magnetic fields made by wires."
         },
         {
           "label": "Charge counting",
           "equation": "Q = N e",
+          "latex": "Q = Ne",
           "note": "Connect charge flow rates to current and to the magnetic fields made by wires."
         },
         {
           "label": "Straight wire field",
           "equation": "B = mu0 I / (2 pi r)",
+          "latex": "B = \\frac{\\mu_0 I}{2\\pi r}",
           "note": "Connect charge flow rates to current and to the magnetic fields made by wires."
         }
       ],
@@ -3777,16 +3798,19 @@
         {
           "label": "Ohm's law",
           "equation": "V = I R",
+          "latex": "V = IR",
           "note": "Study the microscopic picture of current, internal electric fields, and resistance in wires."
         },
         {
           "label": "Resistance",
           "equation": "R = rho L / A",
+          "latex": "R = \\rho \\frac{L}{A}",
           "note": "Study the microscopic picture of current, internal electric fields, and resistance in wires."
         },
         {
           "label": "Current density",
           "equation": "J = sigma E",
+          "latex": "\\vec{J} = \\sigma \\vec{E}",
           "note": "Study the microscopic picture of current, internal electric fields, and resistance in wires."
         }
       ],
@@ -4094,16 +4118,19 @@
         {
           "label": "Microscopic field",
           "equation": "E = J / sigma",
+          "latex": "E = \\frac{J}{\\sigma}",
           "note": "Blend conduction ideas with capacitor charge/discharge behavior and time-dependent current."
         },
         {
           "label": "Current density",
           "equation": "J = I / A",
+          "latex": "J = \\frac{I}{A}",
           "note": "Blend conduction ideas with capacitor charge/discharge behavior and time-dependent current."
         },
         {
           "label": "RC decay",
           "equation": "I(t) = I0 exp(-t / RC)",
+          "latex": "I(t) = I_0 e^{-t/(RC)}",
           "note": "Blend conduction ideas with capacitor charge/discharge behavior and time-dependent current."
         }
       ],
@@ -4476,16 +4503,19 @@
         {
           "label": "Magnetic force",
           "equation": "F = q v x B",
+          "latex": "\\vec{F} = q\\vec{v} \\times \\vec{B}",
           "note": "Work with magnetic force directions, magnitude, straight-line balance, and beam motion."
         },
         {
           "label": "Magnitude",
           "equation": "|F| = |q| v B sin(theta)",
+          "latex": "|\\vec{F}| = |q|vB\\sin\\theta",
           "note": "Work with magnetic force directions, magnitude, straight-line balance, and beam motion."
         },
         {
           "label": "Straight path",
           "equation": "q E = q v B",
+          "latex": "qE = qvB",
           "note": "Work with magnetic force directions, magnitude, straight-line balance, and beam motion."
         }
       ],
@@ -4832,16 +4862,19 @@
         {
           "label": "Electric flux",
           "equation": "phi_E = E A cos(theta)",
+          "latex": "\\Phi_E = EA\\cos\\theta",
           "note": "Use normals and geometry to compute electric or magnetic flux through surfaces."
         },
         {
           "label": "Magnetic flux",
           "equation": "phi_B = B A cos(theta)",
+          "latex": "\\Phi_B = BA\\cos\\theta",
           "note": "Use normals and geometry to compute electric or magnetic flux through surfaces."
         },
         {
           "label": "General form",
           "equation": "phi = integral(F dot dA)",
+          "latex": "\\Phi = \\int \\vec{F}\\cdot d\\vec{A}",
           "note": "Use normals and geometry to compute electric or magnetic flux through surfaces."
         }
       ],
@@ -5110,16 +5143,19 @@
         {
           "label": "Faraday's law",
           "equation": "loop integral(E dot dl) = - d(phi_B) / dt",
+          "latex": "\\oint \\vec{E}\\cdot d\\vec{\\ell} = -\\frac{d\\Phi_B}{dt}",
           "note": "Reason about changing magnetic flux, induced circulation, and Faraday-style direction questions."
         },
         {
           "label": "Lenz idea",
           "equation": "induced effect opposes flux change",
+          "latex": "\\text{induced effect opposes flux change}",
           "note": "Reason about changing magnetic flux, induced circulation, and Faraday-style direction questions."
         },
         {
           "label": "Field shape",
           "equation": "induced E forms loops",
+          "latex": "\\text{induced }\\vec{E}\\text{ forms loops}",
           "note": "Reason about changing magnetic flux, induced circulation, and Faraday-style direction questions."
         }
       ],
@@ -5335,16 +5371,19 @@
         {
           "label": "Wave speed",
           "equation": "c = f lambda",
+          "latex": "c = f\\lambda",
           "note": "Tie together propagation direction, field orientation, wavelength, and frequency."
         },
         {
           "label": "Field ratio",
           "equation": "E / B = c",
+          "latex": "\\frac{E}{B} = c",
           "note": "Tie together propagation direction, field orientation, wavelength, and frequency."
         },
         {
           "label": "Geometry",
           "equation": "E perp B perp propagation",
+          "latex": "\\vec{E} \\perp \\vec{B} \\perp \\text{propagation}",
           "note": "Tie together propagation direction, field orientation, wavelength, and frequency."
         }
       ],
