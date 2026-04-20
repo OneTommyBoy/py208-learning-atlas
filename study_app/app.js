@@ -365,10 +365,11 @@ function renderDashboard() {
                 <p class="eyebrow">${escapeHtml(chapterLabel(chapter.number))}</p>
                 <h3>${escapeHtml(chapter.title)}</h3>
                 <p>${escapeHtml(chapter.summary)}</p>
-                <div class="chip-row">
-                  <span class="chip">${chapter.assignmentCount} assignments</span>
-                  <span class="chip">${chapter.questionCount} questions</span>
-                </div>
+                  <div class="chip-row">
+                    <span class="chip">${chapter.assignmentCount} assignments</span>
+                    <span class="chip">${chapter.questionCount} questions</span>
+                    <span class="chip">${chapter.knowledgeChecks.length} knowledge checks</span>
+                  </div>
                 ${buttonCard(`Open ${chapterLabel(chapter.number)}`, "See the guide, formulas, pitfalls, and assignments.", `data-route="chapter" data-key="${escapeHtml(chapter.key)}"`)}
               </article>
             `,
@@ -399,6 +400,59 @@ function formulaGridMarkup(formulas) {
 }
 
 
+function knowledgeCheckCardMarkup(item) {
+  return `
+    <details class="knowledge-card">
+      <summary>
+        <div class="knowledge-card__meta">
+          <span class="knowledge-card__label">${escapeHtml(item.label)}</span>
+          <div class="chip-row">
+            <span class="chip chip--teal">${escapeHtml(item.type)}</span>
+            <span class="chip">${escapeHtml(item.difficulty)}</span>
+          </div>
+        </div>
+        <p class="knowledge-card__prompt">${escapeHtml(item.prompt)}</p>
+        <p class="knowledge-card__hint">Try it first, then reveal the self-check rubric.</p>
+      </summary>
+      <div class="knowledge-card__body">
+        <h4>Strong answer should include</h4>
+        <ul class="bullet-list">
+          ${item.checkpoints.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}
+        </ul>
+        <p class="knowledge-card__pitfall"><strong>Watch for:</strong> ${escapeHtml(item.pitfall)}</p>
+      </div>
+    </details>
+  `;
+}
+
+
+function knowledgeCheckGridMarkup(items, options = {}) {
+  const {
+    limit = items?.length || 0,
+    intro = "Try every prompt before revealing the answer guide.",
+    previewNote = "",
+    emptyMessage = "Knowledge checks have not been added for this concept block yet.",
+  } = options;
+
+  if (!items || !items.length) {
+    return `<div class="empty-state">${escapeHtml(emptyMessage)}</div>`;
+  }
+
+  const subset = items.slice(0, limit);
+  return `
+    <div class="section-copy">${escapeHtml(intro)}</div>
+    <div class="knowledge-grid">
+      ${subset.map(knowledgeCheckCardMarkup).join("")}
+    </div>
+    ${
+      previewNote
+        ? `<p class="knowledge-preview-note">${escapeHtml(previewNote)}</p>`
+        : ""
+    }
+  `;
+}
+
+
 function conceptStepMarkup(chapter, index, nextChapter) {
   const firstAssignment = chapter.assignments[0] || null;
   const lastAssignment = chapter.assignments[chapter.assignments.length - 1] || null;
@@ -424,6 +478,7 @@ function conceptStepMarkup(chapter, index, nextChapter) {
         <div class="concept-step__meta">
           <span class="chip">${chapter.assignmentCount} assignments</span>
           <span class="chip">${chapter.questionCount} questions</span>
+          <span class="chip">${chapter.knowledgeChecks.length} knowledge checks</span>
           <p class="concept-step__next">
             ${escapeHtml(
               nextChapter
@@ -456,6 +511,15 @@ function conceptStepMarkup(chapter, index, nextChapter) {
       <div class="concept-step__section">
         <h4 class="concept-step__section-title">Formula Board</h4>
         ${formulaGridMarkup(chapter.formulaBoard)}
+      </div>
+
+      <div class="concept-step__section">
+        <h4 class="concept-step__section-title">Knowledge Check Preview</h4>
+        ${knowledgeCheckGridMarkup(chapter.knowledgeChecks, {
+          limit: 2,
+          intro: "Use these as quick self-tests before you move on to the next concept block.",
+          previewNote: `Open the ${chapterLabel(chapter.number)} guide for all ${chapter.knowledgeChecks.length} prompts.`,
+        })}
       </div>
 
       <div class="concept-step__section">
@@ -540,12 +604,13 @@ function renderChapter(chapter) {
           <p class="eyebrow">${escapeHtml(chapterLabel(chapter.number))}</p>
           <h3>${escapeHtml(chapter.title)}</h3>
           <p>${escapeHtml(chapter.summary)}</p>
-          <div class="chip-row">
-            <span class="chip">${chapter.assignmentCount} assignments</span>
-            <span class="chip">${chapter.questionCount} questions</span>
-          </div>
-          ${pathMarkup(["PY208", `${chapterLabel(chapter.number)} ...`])}
-        </section>
+            <div class="chip-row">
+              <span class="chip">${chapter.assignmentCount} assignments</span>
+              <span class="chip">${chapter.questionCount} questions</span>
+              <span class="chip">${chapter.knowledgeChecks.length} knowledge checks</span>
+            </div>
+            ${pathMarkup(["PY208", `${chapterLabel(chapter.number)} ...`])}
+          </section>
         <section class="overview-card">
           <p class="eyebrow">Concept Diagram</p>
           ${diagramMarkup(chapter.diagramType)}
@@ -565,6 +630,13 @@ function renderChapter(chapter) {
       <section class="content">
         <h3 class="section-title">Formula Board</h3>
         ${formulaGridMarkup(chapter.formulaBoard)}
+      </section>
+
+      <section class="content">
+        <h3 class="section-title">Knowledge Check</h3>
+        ${knowledgeCheckGridMarkup(chapter.knowledgeChecks, {
+          intro: `Work through all ${chapter.knowledgeChecks.length} prompts without opening the answer guides first. Then reveal the rubrics and compare your reasoning.`,
+        })}
       </section>
 
       <section class="content">
