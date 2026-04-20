@@ -5,3 +5,9 @@ netlify_publish/
 study_app_server.out.log
 study_app_server.err.log
 keep_on_mining_worlds/profiles/*.local.json
+
+# Local Netlify link metadata
+.netlify/
+
+# Local Netlify folder
+.netlify
