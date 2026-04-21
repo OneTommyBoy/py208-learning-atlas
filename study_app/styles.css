@@ -73,7 +73,14 @@ summary {
 .search-card,
 .formula-card,
 .list-card,
-.stat-card {
+.stat-card,
+.phase-card,
+.chapter-mastery-card,
+.prep-card,
+.drill-pack,
+.mock-exam,
+.mock-section,
+.equation-sheet {
   background: var(--panel);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -167,7 +174,15 @@ summary {
 .search-grid,
 .stats-grid,
 .concept-track,
-.concept-strip {
+.concept-strip,
+.phase-grid,
+.chapter-mastery-grid,
+.formula-recall-grid,
+.drill-pack-grid,
+.mock-exam-grid,
+.mock-sections,
+.prep-jump-grid,
+.checklist-grid {
   display: grid;
   gap: 16px;
 }
@@ -255,6 +270,11 @@ summary {
   gap: 18px;
 }
 
+.topbar__actions {
+  display: flex;
+  align-items: end;
+}
+
 .topbar h2 {
   margin: 0;
   font-size: 1.5rem;
@@ -290,7 +310,14 @@ summary {
 .search-card,
 .formula-card,
 .list-card,
-.stat-card {
+.stat-card,
+.phase-card,
+.chapter-mastery-card,
+.prep-card,
+.drill-pack,
+.mock-exam,
+.mock-section,
+.equation-sheet {
   border-radius: var(--radius-lg);
   padding: 20px;
 }
@@ -331,7 +358,7 @@ summary {
 }
 
 .stats-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .stat-card__value {
@@ -376,7 +403,10 @@ summary {
 .formula-grid,
 .list-grid,
 .search-grid,
-.concept-strip {
+.concept-strip,
+.chapter-mastery-grid,
+.formula-recall-grid,
+.prep-jump-grid {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
@@ -767,6 +797,216 @@ summary {
   font-family: inherit;
 }
 
+.prep-hero {
+  gap: 22px;
+}
+
+.prep-jump-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.focus-card {
+  display: grid;
+  gap: 14px;
+}
+
+.readiness-pill {
+  width: fit-content;
+  min-width: 112px;
+  padding: 16px 20px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--teal), #0d6469);
+  color: white;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 2rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.priority-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.priority-pill {
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(20, 122, 126, 0.1);
+  color: var(--navy);
+}
+
+.priority-pill:hover {
+  background: rgba(20, 122, 126, 0.18);
+}
+
+.progress-metric {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 243, 235, 0.98)),
+    radial-gradient(circle at top left, rgba(20, 122, 126, 0.08), transparent 40%);
+}
+
+.progress-metric--teal .stat-card__value {
+  background: linear-gradient(135deg, var(--teal), #0c6368);
+}
+
+.prep-section {
+  gap: 18px;
+}
+
+.phase-grid,
+.drill-pack-grid,
+.mock-exam-grid {
+  gap: 18px;
+}
+
+.phase-card h4,
+.chapter-mastery-card h4,
+.prep-card h4,
+.drill-pack h4,
+.mock-exam h4,
+.mock-section h4,
+.equation-sheet h4 {
+  margin: 0;
+  color: var(--navy);
+  font-family: "Fraunces", Georgia, serif;
+}
+
+.phase-card,
+.chapter-mastery-card,
+.prep-card,
+.drill-pack,
+.mock-exam,
+.mock-section,
+.equation-sheet {
+  display: grid;
+  gap: 14px;
+}
+
+.checklist-grid {
+  gap: 12px;
+}
+
+.check-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(16, 34, 53, 0.05);
+  border: 1px solid rgba(24, 33, 45, 0.06);
+}
+
+.check-item input {
+  margin-top: 4px;
+  accent-color: var(--teal);
+}
+
+.check-item.is-done {
+  background: rgba(20, 122, 126, 0.1);
+}
+
+.chapter-mastery-card,
+.formula-recall-card {
+  align-content: start;
+}
+
+.prep-card__header,
+.mock-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prep-card__prompt {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+.progress-actions,
+.score-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.status-button {
+  border: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(16, 34, 53, 0.08);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.status-button:hover {
+  background: rgba(20, 122, 126, 0.16);
+}
+
+.status-button.is-active {
+  background: rgba(211, 141, 55, 0.2);
+  color: #8a5718;
+}
+
+.status-button.status-button--positive,
+.status-button.status-button--positive.is-active {
+  background: rgba(20, 122, 126, 0.14);
+  color: #0f6368;
+}
+
+.equation-sheet {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+}
+
+.pdf-frame {
+  min-height: 720px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(24, 33, 45, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.pdf-frame iframe {
+  width: 100%;
+  min-height: 720px;
+  border: none;
+}
+
+.formula-recall-grid,
+.chapter-mastery-grid {
+  align-items: start;
+}
+
+.drill-pack-grid,
+.mock-exam-grid {
+  grid-template-columns: 1fr;
+}
+
+.mock-score-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.mock-sections {
+  gap: 16px;
+}
+
+.mock-section {
+  background: rgba(255, 255, 255, 0.8);
+}
+
 .empty-state {
   padding: 28px;
   border-radius: var(--radius-lg);
@@ -793,7 +1033,8 @@ summary {
   .assignment-page__hero,
   .stats-grid,
   .concept-step__header,
-  .concept-step__body {
+  .concept-step__body,
+  .equation-sheet {
     grid-template-columns: 1fr;
   }
 

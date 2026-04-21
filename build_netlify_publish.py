@@ -15,6 +15,7 @@ STUDY_APP_DIR = ROOT / "study_app"
 LOCAL_DATA_PATH = STUDY_APP_DIR / "course-data.json"
 DEFAULT_PUBLISH_DIR = ROOT / "netlify_publish"
 STATIC_APP_FILES = ("index.html", "styles.css", "app.js")
+STATIC_APP_DIRS = ("assets",)
 
 
 def latest_course_source_mtime() -> float:
@@ -43,6 +44,11 @@ def quoted_publish_url(relative_path: Path) -> str:
 def copy_static_app_files(publish_dir: Path) -> None:
     for filename in STATIC_APP_FILES:
         shutil.copy2(STUDY_APP_DIR / filename, publish_dir / filename)
+    for dirname in STATIC_APP_DIRS:
+        source_dir = STUDY_APP_DIR / dirname
+        destination_dir = publish_dir / dirname
+        if source_dir.exists():
+            shutil.copytree(source_dir, destination_dir, dirs_exist_ok=True)
 
 
 def export_assets_and_rewrite_payload(payload: dict, publish_dir: Path) -> dict:
