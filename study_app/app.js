@@ -38,6 +38,7 @@ function createEmptyProgress() {
     planTasks: {},
     chapterStatus: {},
     knowledgeStatus: {},
+    knowledgeResponses: {},
     formulaStatus: {},
     flashcardStatus: {},
     questionStatus: {},
@@ -57,6 +58,7 @@ function normalizeProgress(raw) {
     planTasks: raw.planTasks && typeof raw.planTasks === "object" ? raw.planTasks : {},
     chapterStatus: raw.chapterStatus && typeof raw.chapterStatus === "object" ? raw.chapterStatus : {},
     knowledgeStatus: raw.knowledgeStatus && typeof raw.knowledgeStatus === "object" ? raw.knowledgeStatus : {},
+    knowledgeResponses: raw.knowledgeResponses && typeof raw.knowledgeResponses === "object" ? raw.knowledgeResponses : {},
     formulaStatus: raw.formulaStatus && typeof raw.formulaStatus === "object" ? raw.formulaStatus : {},
     flashcardStatus: raw.flashcardStatus && typeof raw.flashcardStatus === "object" ? raw.flashcardStatus : {},
     questionStatus: raw.questionStatus && typeof raw.questionStatus === "object" ? raw.questionStatus : {},
@@ -153,6 +155,62 @@ function percentage(part, whole) {
     return 0;
   }
   return Math.round((part / whole) * 100);
+}
+
+
+function countWords(text) {
+  const trimmed = String(text || "").trim();
+  if (!trimmed) {
+    return 0;
+  }
+  return trimmed.split(/\s+/).length;
+}
+
+
+function knowledgeResponseValue(itemId) {
+  return state.progress.knowledgeResponses[itemId] || "";
+}
+
+
+function setKnowledgeResponse(itemId, value) {
+  const normalized = String(value || "").replace(/\r/g, "");
+  if (normalized.trim()) {
+    state.progress.knowledgeResponses[itemId] = normalized;
+  } else {
+    delete state.progress.knowledgeResponses[itemId];
+  }
+  saveProgress();
+  syncKnowledgeResponseUi(itemId, normalized);
+}
+
+
+function syncKnowledgeResponseUi(itemId, value) {
+  const hasResponse = Boolean(String(value || "").trim());
+  const wordLabel = `${countWords(value)} words`;
+  const statusLabel = hasResponse ? "Auto-saved locally" : "Start typing to save your draft.";
+
+  document.querySelectorAll(`[data-answer-summary-status="${itemId}"]`).forEach((node) => {
+    node.textContent = hasResponse ? "Answer saved" : "No draft yet";
+    node.classList.toggle("chip--teal", hasResponse);
+  });
+
+  document.querySelectorAll(`[data-answer-word-count="${itemId}"]`).forEach((node) => {
+    node.textContent = wordLabel;
+  });
+
+  document.querySelectorAll(`[data-answer-save-state="${itemId}"]`).forEach((node) => {
+    node.textContent = statusLabel;
+  });
+}
+
+
+function clearKnowledgeResponse(itemId) {
+  delete state.progress.knowledgeResponses[itemId];
+  document.querySelectorAll(`[data-answer-field="knowledge-response"][data-item-id="${itemId}"]`).forEach((field) => {
+    field.value = "";
+  });
+  saveProgress();
+  syncKnowledgeResponseUi(itemId, "");
 }
 
 
@@ -1255,9 +1313,56 @@ function progressMetricMarkup(value, label, detail, accent = "") {
 }
 
 
+function knowledgeAnswerWorkspaceMarkup(item) {
+  const response = knowledgeResponseValue(item.id);
+
+  return `
+    <section class="knowledge-answer-box">
+      <div class="knowledge-answer-box__header">
+        <h4>Your answer workspace</h4>
+        <span class="chip ${response.trim() ? "chip--teal" : ""}" data-answer-summary-status="${escapeHtml(item.id)}">
+          ${response.trim() ? "Answer saved" : "No draft yet"}
+        </span>
+      </div>
+      <p class="knowledge-answer-box__copy">
+        Write your explanation, derivation, or bullet-point reasoning here before you reveal the self-check rubric.
+      </p>
+      <label class="knowledge-answer-box__field">
+        <span class="knowledge-answer-box__label">Answer</span>
+        <textarea
+          class="knowledge-answer-box__input"
+          data-answer-field="knowledge-response"
+          data-item-id="${escapeHtml(item.id)}"
+          rows="7"
+          placeholder="Type your answer here. The app saves it automatically on this device."
+          spellcheck="true"
+        >${escapeHtml(response)}</textarea>
+      </label>
+      <div class="knowledge-answer-box__meta">
+        <span data-answer-word-count="${escapeHtml(item.id)}">${countWords(response)} words</span>
+        <span class="knowledge-answer-box__save" data-answer-save-state="${escapeHtml(item.id)}">
+          ${response.trim() ? "Auto-saved locally" : "Start typing to save your draft."}
+        </span>
+      </div>
+      <div class="progress-actions">
+        <button
+          class="status-button"
+          type="button"
+          data-progress-action="clear-knowledge-response"
+          data-item-id="${escapeHtml(item.id)}"
+        >
+          Clear Answer
+        </button>
+      </div>
+    </section>
+  `;
+}
+
+
 function knowledgeCheckCardMarkup(item, options = {}) {
   const trackProgress = options.trackProgress || false;
   const status = state.progress.knowledgeStatus[item.id];
+  const response = knowledgeResponseValue(item.id);
 
   return `
     <details class="knowledge-card">
@@ -1267,6 +1372,9 @@ function knowledgeCheckCardMarkup(item, options = {}) {
           <div class="chip-row">
             <span class="chip chip--teal">${escapeHtml(item.type)}</span>
             <span class="chip">${escapeHtml(item.difficulty)}</span>
+            <span class="chip ${response.trim() ? "chip--teal" : ""}" data-answer-summary-status="${escapeHtml(item.id)}">
+              ${response.trim() ? "Answer saved" : "No draft yet"}
+            </span>
             ${
               trackProgress
                 ? `<span class="chip ${status === "solid" ? "chip--teal" : ""}">${escapeHtml(simpleStatusLabel(status))}</span>`
@@ -1275,14 +1383,20 @@ function knowledgeCheckCardMarkup(item, options = {}) {
           </div>
         </div>
         <p class="knowledge-card__prompt">${escapeHtml(item.prompt)}</p>
-        <p class="knowledge-card__hint">Try it first, then reveal the self-check rubric.</p>
+        <p class="knowledge-card__hint">Open the card, write your answer, then reveal the self-check rubric when you are ready.</p>
       </summary>
       <div class="knowledge-card__body">
-        <h4>Strong answer should include</h4>
-        <ul class="bullet-list">
-          ${item.checkpoints.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}
-        </ul>
-        <p class="knowledge-card__pitfall"><strong>Watch for:</strong> ${escapeHtml(item.pitfall)}</p>
+        ${knowledgeAnswerWorkspaceMarkup(item)}
+        <details class="knowledge-card__rubric">
+          <summary>Reveal self-check rubric</summary>
+          <div class="knowledge-card__rubric-body">
+            <h4>Strong answer should include</h4>
+            <ul class="bullet-list">
+              ${item.checkpoints.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}
+            </ul>
+            <p class="knowledge-card__pitfall"><strong>Watch for:</strong> ${escapeHtml(item.pitfall)}</p>
+          </div>
+        </details>
         ${
           trackProgress
             ? `
@@ -2757,6 +2871,9 @@ function handleProgressAction(target) {
     state.progress.planTasks[target.dataset.taskId] = target.checked;
   } else if (action === "set-chapter-status") {
     state.progress.chapterStatus[target.dataset.key] = target.dataset.status;
+  } else if (action === "clear-knowledge-response") {
+    clearKnowledgeResponse(target.dataset.itemId);
+    return;
   } else if (action === "set-knowledge-status") {
     state.progress.knowledgeStatus[target.dataset.itemId] = target.dataset.status;
   } else if (action === "set-formula-status") {
@@ -2787,6 +2904,14 @@ async function loadData() {
 
 
 function bindEvents() {
+  document.addEventListener("input", (event) => {
+    const answerField = event.target.closest('[data-answer-field="knowledge-response"]');
+    if (answerField) {
+      setKnowledgeResponse(answerField.dataset.itemId, answerField.value);
+      return;
+    }
+  });
+
   document.addEventListener("click", (event) => {
     const progressTarget = event.target.closest("[data-progress-action]");
     if (progressTarget && progressTarget.tagName !== "INPUT") {

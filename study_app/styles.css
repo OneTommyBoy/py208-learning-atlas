@@ -733,6 +733,99 @@ summary {
   color: var(--ink);
 }
 
+.knowledge-answer-box {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: rgba(16, 34, 53, 0.04);
+  border: 1px solid rgba(24, 33, 45, 0.08);
+}
+
+.knowledge-answer-box__header,
+.knowledge-answer-box__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.knowledge-answer-box__header h4,
+.knowledge-card__rubric-body h4 {
+  margin: 0;
+  color: var(--navy);
+}
+
+.knowledge-answer-box__copy,
+.knowledge-answer-box__meta {
+  color: var(--muted);
+}
+
+.knowledge-answer-box__field {
+  display: grid;
+  gap: 8px;
+}
+
+.knowledge-answer-box__label {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.knowledge-answer-box__input {
+  width: 100%;
+  min-height: 160px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(24, 33, 45, 0.14);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.58;
+  resize: vertical;
+}
+
+.knowledge-answer-box__input:focus {
+  outline: 2px solid rgba(20, 122, 126, 0.24);
+  outline-offset: 2px;
+  border-color: rgba(20, 122, 126, 0.4);
+}
+
+.knowledge-answer-box__save {
+  color: #0f6368;
+  font-weight: 700;
+}
+
+.knowledge-card__rubric {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(24, 33, 45, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+  overflow: hidden;
+}
+
+.knowledge-card__rubric summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.knowledge-card__rubric summary::-webkit-details-marker {
+  display: none;
+}
+
+.knowledge-card__rubric[open] summary,
+.knowledge-card__rubric summary:hover {
+  background: rgba(20, 122, 126, 0.08);
+}
+
+.knowledge-card__rubric-body {
+  display: grid;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
 .bullet-list {
   margin: 0;
   padding-left: 18px;
