@@ -351,7 +351,16 @@ summary {
 .list-card p,
 .search-card p,
 .loading-card p,
-.stat-card p {
+.stat-card p,
+.phase-card p,
+.chapter-mastery-card p,
+.prep-card p,
+.drill-pack p,
+.mock-exam p,
+.mock-section p,
+.equation-sheet p,
+.mission-card p,
+.question-pack p {
   margin: 0;
   color: var(--muted);
   line-height: 1.58;
@@ -845,6 +854,58 @@ summary {
   background: rgba(20, 122, 126, 0.18);
 }
 
+.mission-grid,
+.question-pack-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.mission-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.question-pack-grid {
+  grid-template-columns: 1fr;
+}
+
+.mission-card,
+.question-pack {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.mission-card h4,
+.question-pack h4 {
+  margin: 0;
+  color: var(--navy);
+  font-family: "Fraunces", Georgia, serif;
+}
+
+.mission-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mission-button {
+  border: none;
+  cursor: pointer;
+  padding: 11px 14px;
+  border-radius: 999px;
+  background: rgba(20, 122, 126, 0.1);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.mission-button:hover {
+  background: rgba(20, 122, 126, 0.18);
+}
+
 .progress-metric {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 243, 235, 0.98)),
@@ -863,6 +924,43 @@ summary {
 .drill-pack-grid,
 .mock-exam-grid {
   gap: 18px;
+}
+
+.prep-metric-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.prep-metric-row {
+  display: grid;
+  gap: 8px;
+}
+
+.prep-metric-row__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.prep-metric-row__top strong {
+  color: var(--navy);
+}
+
+.progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(16, 34, 53, 0.08);
+  overflow: hidden;
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--teal), #0f6368);
 }
 
 .phase-card h4,
@@ -983,6 +1081,14 @@ summary {
   width: 100%;
   min-height: 720px;
   border: none;
+}
+
+.question-lab-card .question-card__body {
+  gap: 14px;
+}
+
+.question-lab-actions {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .formula-recall-grid,

@@ -2,11 +2,13 @@ const DATA_URL = "./course-data.json";
 const PROGRESS_STORAGE_KEY = "py208-learning-atlas-progress-v3";
 
 const PREP_SECTION_LABELS = {
+  missions: "Mission Control",
   plan: "Study System",
   readiness: "Chapter Readiness",
   equation: "Equation Sheet",
   formulas: "Formula Deck",
   flashcards: "Flashcards",
+  questions: "Screenshot Lab",
   drills: "Drill Packs",
   mocks: "Mock Exams",
   "exam-day": "Exam Day",
@@ -38,6 +40,7 @@ function createEmptyProgress() {
     knowledgeStatus: {},
     formulaStatus: {},
     flashcardStatus: {},
+    questionStatus: {},
     drillStatus: {},
     mockScores: {},
   };
@@ -56,6 +59,7 @@ function normalizeProgress(raw) {
     knowledgeStatus: raw.knowledgeStatus && typeof raw.knowledgeStatus === "object" ? raw.knowledgeStatus : {},
     formulaStatus: raw.formulaStatus && typeof raw.formulaStatus === "object" ? raw.formulaStatus : {},
     flashcardStatus: raw.flashcardStatus && typeof raw.flashcardStatus === "object" ? raw.flashcardStatus : {},
+    questionStatus: raw.questionStatus && typeof raw.questionStatus === "object" ? raw.questionStatus : {},
     drillStatus: raw.drillStatus && typeof raw.drillStatus === "object" ? raw.drillStatus : {},
     mockScores: raw.mockScores && typeof raw.mockScores === "object" ? raw.mockScores : {},
   };
@@ -128,6 +132,17 @@ function simpleStatusLabel(status) {
   }
   if (status === "needs-work") {
     return "Needs Work";
+  }
+  return "Unrated";
+}
+
+
+function questionStatusLabel(status) {
+  if (status === "mastered") {
+    return "Mastered";
+  }
+  if (status === "reviewing") {
+    return "Reviewing";
   }
   return "Unrated";
 }
@@ -595,6 +610,60 @@ function buildFlashcardsForChapter(chapter) {
 }
 
 
+function sampleEvenly(items, count) {
+  if (items.length <= count) {
+    return items;
+  }
+
+  const indexesToTake = new Set();
+  for (let step = 0; step < count; step += 1) {
+    indexesToTake.add(Math.round((step * (items.length - 1)) / Math.max(count - 1, 1)));
+  }
+
+  return [...indexesToTake]
+    .sort((left, right) => left - right)
+    .map((index) => items[index]);
+}
+
+
+function buildQuestionPacks(chapters) {
+  return chapters.map((chapter) => {
+    const questionPool = chapter.assignments.flatMap((assignment) =>
+      assignment.questions.map((question) => ({
+        id: `lab-${question.anchor}`,
+        chapterKey: chapter.key,
+        chapterNumber: chapter.number,
+        chapterTitle: chapter.title,
+        assignmentName: assignment.name,
+        assignmentSlug: assignment.slug,
+        assignmentFocus: assignment.focus,
+        questionIndex: question.index,
+        questionLabel: question.label,
+        fileName: question.fileName,
+        anchor: question.anchor,
+        excerpt: question.excerpt,
+        transcript: question.transcript,
+        assetUrl: question.assetUrl,
+        width: question.width,
+        height: question.height,
+        lineCount: question.lineCount,
+      })),
+    );
+
+    return {
+      id: `question-pack-${chapter.key}`,
+      chapterKey: chapter.key,
+      chapterNumber: chapter.number,
+      chapterTitle: chapter.title,
+      title: `${chapterLabel(chapter.number)} Screenshot Lab`,
+      description: `Use representative real prompts from the captured ${chapter.title.toLowerCase()} homework to make sure the theory holds up against actual wording, diagrams, and notation.`,
+      items: sampleEvenly(questionPool, Math.min(3, questionPool.length)),
+      assignmentNames: chapter.assignments.slice(0, 3).map((assignment) => assignment.name),
+    };
+  });
+}
+
+
 function buildExamPrepData(data) {
   const chapters = [...data.chapters].sort((left, right) => left.number - right.number);
   const firstChapter = chapters[0];
@@ -612,6 +681,7 @@ function buildExamPrepData(data) {
     })),
   );
   const flashcards = chapters.flatMap(buildFlashcardsForChapter);
+  const questionPacks = buildQuestionPacks(chapters);
   const studySystem = [
     {
       id: "phase-map",
@@ -670,6 +740,10 @@ function buildExamPrepData(data) {
         {
           id: "plan-equation-sheet",
           label: "Practice with the built-in equation sheet so your real exam reference feels familiar.",
+        },
+        {
+          id: "plan-screenshot-lab",
+          label: `Work the ${questionPacks.length} screenshot lab packs so real homework-style prompts feel familiar too.`,
         },
       ],
     },
@@ -768,6 +842,7 @@ function buildExamPrepData(data) {
     chapterTargets,
     formulaDeck,
     flashcards,
+    questionPacks,
     drillPacks,
     mockExams,
     equationSheet: {
@@ -823,6 +898,7 @@ function hydrateData(payload) {
     formulaCount: chapters.reduce((total, chapter) => total + chapter.formulaBoard.length, 0),
     knowledgeCheckCount: chapters.reduce((total, chapter) => total + chapter.knowledgeChecks.length, 0),
     flashcardCount: hydrated.examPrep.flashcards.length,
+    questionLabCount: hydrated.examPrep.questionPacks.reduce((total, pack) => total + pack.items.length, 0),
     drillPackCount: hydrated.examPrep.drillPacks.length,
     mockQuestionCount: hydrated.examPrep.mockExams.reduce(
       (total, exam) => total + exam.sections.reduce((sectionTotal, section) => sectionTotal + section.items.length, 0),
@@ -842,6 +918,7 @@ function progressSnapshot() {
   const solidKnowledge = Object.values(state.progress.knowledgeStatus).filter((status) => status === "solid").length;
   const solidFormulas = Object.values(state.progress.formulaStatus).filter((status) => status === "solid").length;
   const solidFlashcards = Object.values(state.progress.flashcardStatus).filter((status) => status === "solid").length;
+  const masteredQuestions = Object.values(state.progress.questionStatus).filter((status) => status === "mastered").length;
   const completedDrillPacks = Object.values(state.progress.drillStatus).filter(Boolean).length;
   const mockQuestionTotal = state.data.examPrep.mockExams.reduce(
     (total, exam) => total + exam.sections.reduce((sectionTotal, section) => sectionTotal + section.items.length, 0),
@@ -853,16 +930,18 @@ function progressSnapshot() {
   const knowledgePercent = percentage(solidKnowledge, state.data.stats.knowledgeCheckCount);
   const formulaPercent = percentage(solidFormulas, state.data.stats.formulaCount);
   const flashcardPercent = percentage(solidFlashcards, state.data.stats.flashcardCount);
+  const questionPercent = percentage(masteredQuestions, state.data.stats.questionLabCount);
   const drillPercent = percentage(completedDrillPacks, state.data.examPrep.drillPacks.length);
   const planPercent = percentage(completedPlanTasks, totalPlanTasks);
   const readiness = Math.round(
-    (chapterPercent * 0.28)
-    + (knowledgePercent * 0.2)
-    + (formulaPercent * 0.18)
-    + (flashcardPercent * 0.14)
-    + (drillPercent * 0.1)
-    + (planPercent * 0.05)
-    + (mockPercent * 0.05),
+    (chapterPercent * 0.24)
+    + (knowledgePercent * 0.18)
+    + (formulaPercent * 0.16)
+    + (flashcardPercent * 0.12)
+    + (questionPercent * 0.12)
+    + (drillPercent * 0.08)
+    + (planPercent * 0.04)
+    + (mockPercent * 0.06),
   );
 
   return {
@@ -873,6 +952,7 @@ function progressSnapshot() {
     solidKnowledge,
     solidFormulas,
     solidFlashcards,
+    masteredQuestions,
     completedDrillPacks,
     mockQuestionTotal,
     mockPercent,
@@ -881,11 +961,130 @@ function progressSnapshot() {
 }
 
 
+function chapterProgressSummary(chapter) {
+  const chapterFlashcards = state.data.examPrep.flashcards.filter((card) => card.chapterKey === chapter.key);
+  const questionPack = state.data.examPrep.questionPacks.find((pack) => pack.chapterKey === chapter.key);
+  const chapterStatus = state.progress.chapterStatus[chapter.key] || "todo";
+  const solidKnowledge = chapter.knowledgeChecks.filter((item) => state.progress.knowledgeStatus[item.id] === "solid").length;
+  const solidFormulas = chapter.formulaBoard.filter(
+    (formula) => state.progress.formulaStatus[`${formula.id}-recall`] === "solid",
+  ).length;
+  const solidFlashcards = chapterFlashcards.filter((card) => state.progress.flashcardStatus[card.id] === "solid").length;
+  const masteredQuestions = questionPack
+    ? questionPack.items.filter((item) => state.progress.questionStatus[item.id] === "mastered").length
+    : 0;
+  const weaknessScore = (
+    (2 - chapterStatusValue(chapterStatus)) * 8
+    + (chapter.knowledgeChecks.length - solidKnowledge) * 2
+    + (chapter.formulaBoard.length - solidFormulas) * 3
+    + (chapterFlashcards.length - solidFlashcards)
+    + ((questionPack?.items.length || 0) - masteredQuestions) * 2
+  );
+
+  return {
+    key: chapter.key,
+    number: chapter.number,
+    title: chapter.title,
+    chapterStatus,
+    solidKnowledge,
+    knowledgeTotal: chapter.knowledgeChecks.length,
+    solidFormulas,
+    formulaTotal: chapter.formulaBoard.length,
+    solidFlashcards,
+    flashcardTotal: chapterFlashcards.length,
+    masteredQuestions,
+    questionTotal: questionPack?.items.length || 0,
+    weaknessScore,
+  };
+}
+
+
 function focusRecommendations() {
-  return [...state.data.examPrep.chapterTargets]
-    .sort((left, right) => left.number - right.number)
-    .filter((chapter) => (state.progress.chapterStatus[chapter.key] || "todo") !== "ready")
+  return [...state.data.chapters]
+    .map(chapterProgressSummary)
+    .filter((chapter) => chapter.chapterStatus !== "ready")
+    .sort((left, right) => right.weaknessScore - left.weaknessScore || left.number - right.number)
     .slice(0, 3);
+}
+
+
+function buildStudyMissions() {
+  const chapterSummaries = state.data.chapters
+    .map(chapterProgressSummary)
+    .sort((left, right) => right.weaknessScore - left.weaknessScore || left.number - right.number);
+  const weakestChapter = chapterSummaries[0];
+  const openFormulaCount = state.data.examPrep.formulaDeck.filter((item) => state.progress.formulaStatus[item.id] !== "solid").length;
+  const openFlashcardCount = state.data.examPrep.flashcards.filter((item) => state.progress.flashcardStatus[item.id] !== "solid").length;
+  const openKnowledgeCount = state.data.chapters.reduce(
+    (total, chapter) => total + chapter.knowledgeChecks.filter((item) => state.progress.knowledgeStatus[item.id] !== "solid").length,
+    0,
+  );
+  const openQuestionCount = state.data.examPrep.questionPacks.reduce(
+    (total, pack) => total + pack.items.filter((item) => state.progress.questionStatus[item.id] !== "mastered").length,
+    0,
+  );
+  const mockItems = state.data.examPrep.mockExams.flatMap((exam) => exam.sections.flatMap((section) => section.items));
+  const unscoredMockCount = mockItems.filter((item) => state.progress.mockScores[item.id] === undefined).length;
+  const allRecallLocked = openFormulaCount === 0 && openFlashcardCount === 0 && openKnowledgeCount === 0;
+  const allQuestionLabLocked = openQuestionCount === 0;
+
+  return [
+    {
+      eyebrow: "Mission 1",
+      title: weakestChapter.weaknessScore
+        ? `Repair ${chapterLabel(weakestChapter.number)} ${weakestChapter.title}`
+        : "Keep Your Strongest Shape",
+      description: weakestChapter.weaknessScore
+        ? "This chapter is still costing the most readiness. Tighten the guide, then clear its practice items until the unit stops feeling fragile."
+        : "Your tracked work is in a strong place. Stay sharp by revisiting one chapter guide and one live question pack instead of trying to reread everything.",
+      chips: [
+        chapterStatusLabel(weakestChapter.chapterStatus),
+        `KC ${weakestChapter.solidKnowledge}/${weakestChapter.knowledgeTotal}`,
+        `Formula ${weakestChapter.solidFormulas}/${weakestChapter.formulaTotal}`,
+        `Flashcards ${weakestChapter.solidFlashcards}/${weakestChapter.flashcardTotal}`,
+      ],
+      actions: [
+        { label: "Open Chapter Guide", route: "chapter", key: weakestChapter.key },
+        { label: "Open Screenshot Lab", route: "exam", section: "questions" },
+      ],
+    },
+    {
+      eyebrow: "Mission 2",
+      title: "Run A Rapid Recall Sweep",
+      description: allRecallLocked
+        ? "Your formula, flashcard, and chapter-check recall is fully marked as locked in. Keep it warm with a short mixed retrieval pass instead of a long reread."
+        : `You still have ${openFormulaCount} formulas, ${openFlashcardCount} flashcards, and ${openKnowledgeCount} chapter prompts not locked in. Use a short retrieval block before more timed work.`,
+      chips: ["Fast reset", "Best before mocks"],
+      actions: [
+        { label: "Open Formula Deck", route: "exam", section: "formulas" },
+        { label: "Open Flashcards", route: "exam", section: "flashcards" },
+      ],
+    },
+    {
+      eyebrow: "Mission 3",
+      title: "Practice On Real Screenshot Questions",
+      description: allQuestionLabLocked
+        ? "Every screenshot-lab prompt is marked mastered. Use a few of them as a live warm-up before mocks so real homework-style wording still feels familiar."
+        : `${openQuestionCount} screenshot-lab prompts are not marked mastered yet. Rehearse off the actual captured homework so real wording and diagrams stop feeling surprising.`,
+      chips: ["Real folder prompts", `${state.data.stats.questionLabCount} tracked lab questions`],
+      actions: [
+        { label: "Open Question Lab", route: "exam", section: "questions" },
+        { label: "Start At The Beginning", route: "assignment", slug: state.data.assignments[0].slug },
+      ],
+    },
+    {
+      eyebrow: "Mission 4",
+      title: unscoredMockCount ? "Score More Mock Work" : "Refine Final Exam Mode",
+      description: unscoredMockCount
+        ? `You still have ${unscoredMockCount} mock prompts without a score. Finish scoring them so the app can tell you more honestly where the pressure points are.`
+        : "Both mock exams have been scored. Use them as your final feedback loop, then revisit only the weak chapters and screenshot packs they expose.",
+      chips: ["Timed pressure", "Close the loop"],
+      actions: [
+        { label: "Open Mock Exams", route: "exam", section: "mocks" },
+        { label: "Open Equation Sheet", route: "exam", section: "equation" },
+      ],
+    },
+  ];
 }
 
 
@@ -915,6 +1114,11 @@ function statMarkup(stats) {
       value: stats.flashcardCount,
       title: "Flashcards",
       body: "Condensed recall cards for formulas, traps, and concepts.",
+    },
+    {
+      value: stats.questionLabCount,
+      title: "Screenshot Lab",
+      body: "Real folder prompts selected for targeted practice and mastery tracking.",
     },
     {
       value: stats.mockQuestionCount,
@@ -1257,6 +1461,7 @@ function renderDashboard() {
   const first = state.data.assignments[0];
   const progress = progressSnapshot();
   const focus = focusRecommendations();
+  const missions = buildStudyMissions();
   elements.topbarTitle.textContent = "Course Dashboard";
   elements.content.innerHTML = `
     <article class="hero-card">
@@ -1318,8 +1523,16 @@ function renderDashboard() {
         ${progressMetricMarkup(`${progress.solidKnowledge}/${state.data.stats.knowledgeCheckCount}`, "Locked Checks", "Knowledge checks you have already rated as solid.")}
         ${progressMetricMarkup(`${progress.solidFormulas}/${state.data.stats.formulaCount}`, "Solid Formulas", "Formula cards you can now recall with confidence.")}
         ${progressMetricMarkup(`${progress.solidFlashcards}/${state.data.stats.flashcardCount}`, "Solid Flashcards", "Concept and trap cards that feel stable.")}
+        ${progressMetricMarkup(`${progress.masteredQuestions}/${state.data.stats.questionLabCount}`, "Screenshot Lab", "Real homework-style prompts you have marked mastered.")}
         ${progressMetricMarkup(`${progress.completedDrillPacks}/${state.data.examPrep.drillPacks.length}`, "Drill Packs Done", "Mixed review sets completed under pressure.")}
         ${progressMetricMarkup(`${progress.mockPercent}%`, "Mock Score", "Average from every scored mock-exam prompt so far.")}
+      </div>
+    </section>
+
+    <section class="content">
+      <h3 class="section-title">Best Next Moves</h3>
+      <div class="mission-grid">
+        ${missions.slice(0, 3).map(missionCardMarkup).join("")}
       </div>
     </section>
 
@@ -1610,8 +1823,73 @@ function planPhaseMarkup(phase) {
 }
 
 
+function routeAttributes(action) {
+  if (action.route === "chapter") {
+    return `data-route="chapter" data-key="${escapeHtml(action.key)}"`;
+  }
+  if (action.route === "assignment") {
+    return `data-route="assignment" data-slug="${escapeHtml(action.slug)}"`;
+  }
+  if (action.route === "question") {
+    return `data-route="question" data-slug="${escapeHtml(action.slug)}" data-index="${action.index}"`;
+  }
+  return `data-route="exam" data-section="${escapeHtml(action.section || "")}"`;
+}
+
+
+function progressBarMarkup(value, total) {
+  const width = total ? Math.round((value / total) * 100) : 0;
+  return `
+    <div class="progress-bar" aria-hidden="true">
+      <span style="width: ${width}%"></span>
+    </div>
+  `;
+}
+
+
+function prepMetricRowMarkup(label, value, total) {
+  return `
+    <div class="prep-metric-row">
+      <div class="prep-metric-row__top">
+        <strong>${escapeHtml(label)}</strong>
+        <span>${value}/${total}</span>
+      </div>
+      ${progressBarMarkup(value, total)}
+    </div>
+  `;
+}
+
+
+function missionActionMarkup(action) {
+  return `
+    <button class="mission-button" type="button" ${routeAttributes(action)}>
+      ${escapeHtml(action.label)}
+    </button>
+  `;
+}
+
+
+function missionCardMarkup(mission) {
+  return `
+    <article class="mission-card">
+      <p class="eyebrow">${escapeHtml(mission.eyebrow)}</p>
+      <h4>${escapeHtml(mission.title)}</h4>
+      <p>${escapeHtml(mission.description)}</p>
+      <div class="chip-row">
+        ${mission.chips.map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`).join("")}
+      </div>
+      <div class="mission-card__actions">
+        ${mission.actions.map(missionActionMarkup).join("")}
+      </div>
+    </article>
+  `;
+}
+
+
 function chapterMasteryMarkup(item) {
   const status = state.progress.chapterStatus[item.key] || "todo";
+  const chapter = state.data.chapters.find((entry) => entry.key === item.key);
+  const summary = chapterProgressSummary(chapter);
   return `
     <article class="chapter-mastery-card">
       <div class="prep-card__header">
@@ -1626,6 +1904,12 @@ function chapterMasteryMarkup(item) {
         ${item.mustKnow.map((point) => `<li>${escapeHtml(point)}</li>`).join("")}
       </ul>
       <p class="knowledge-card__pitfall"><strong>Top trap:</strong> ${escapeHtml(item.trap)}</p>
+      <div class="prep-metric-grid">
+        ${prepMetricRowMarkup("Knowledge checks", summary.solidKnowledge, summary.knowledgeTotal)}
+        ${prepMetricRowMarkup("Formula recall", summary.solidFormulas, summary.formulaTotal)}
+        ${prepMetricRowMarkup("Flashcards", summary.solidFlashcards, summary.flashcardTotal)}
+        ${prepMetricRowMarkup("Screenshot lab", summary.masteredQuestions, summary.questionTotal)}
+      </div>
       <p class="muted-line">
         Assignments to revisit: ${escapeHtml(item.assignmentNames.join(", ") || `Open the ${chapterLabel(item.number)} guide`)}.
       </p>
@@ -1749,6 +2033,114 @@ function flashcardMarkup(card) {
         ${buttonCard(`Open ${chapterLabel(card.chapterNumber)}`, "Jump back to the chapter guide tied to this card.", `data-route="chapter" data-key="${escapeHtml(card.chapterKey)}"`)}
       </div>
     </details>
+  `;
+}
+
+
+function questionLabItemMarkup(item) {
+  const status = state.progress.questionStatus[item.id];
+  return `
+    <details class="question-card question-lab-card">
+      <summary>
+        <div class="question-card__summary-top">
+          <div>
+            <p class="eyebrow">${escapeHtml(item.assignmentName)}</p>
+            <h4 class="question-card__title">${escapeHtml(item.questionLabel)}</h4>
+          </div>
+          <div class="chip-row">
+            <span class="chip">${item.lineCount} OCR lines</span>
+            <span class="chip ${status === "mastered" ? "chip--teal" : ""}">${escapeHtml(questionStatusLabel(status))}</span>
+          </div>
+        </div>
+        <p class="question-card__excerpt">${escapeHtml(item.excerpt)}</p>
+      </summary>
+      <div class="question-card__body">
+        <div class="question-image">
+          <img
+            loading="lazy"
+            src="${escapeHtml(item.assetUrl)}"
+            alt="${escapeHtml(`${item.assignmentName} ${item.questionLabel}`)}"
+            width="${item.width}"
+            height="${item.height}"
+          >
+        </div>
+        <div class="transcript-box">
+          <h4>Extracted prompt text</h4>
+          <pre>${escapeHtml(item.transcript || "No OCR text was extracted for this screenshot.")}</pre>
+        </div>
+        <div class="progress-actions">
+          <button
+            class="status-button ${status === "todo" ? "is-active" : ""}"
+            type="button"
+            data-progress-action="set-question-status"
+            data-item-id="${escapeHtml(item.id)}"
+            data-status="todo"
+          >
+            Reset
+          </button>
+          <button
+            class="status-button ${status === "reviewing" ? "is-active" : ""}"
+            type="button"
+            data-progress-action="set-question-status"
+            data-item-id="${escapeHtml(item.id)}"
+            data-status="reviewing"
+          >
+            Reviewing
+          </button>
+          <button
+            class="status-button status-button--positive ${status === "mastered" ? "is-active" : ""}"
+            type="button"
+            data-progress-action="set-question-status"
+            data-item-id="${escapeHtml(item.id)}"
+            data-status="mastered"
+          >
+            Mastered
+          </button>
+        </div>
+        <div class="assignment-links question-lab-actions">
+          ${buttonCard(
+            "Open Exact Question",
+            "Jump to the original screenshot inside its assignment stack.",
+            `data-route="question" data-slug="${escapeHtml(item.assignmentSlug)}" data-index="${item.questionIndex}"`,
+          )}
+          ${buttonCard(
+            `Open ${chapterLabel(item.chapterNumber)}`,
+            "Return to the chapter guide if this real prompt exposes a weak concept.",
+            `data-route="chapter" data-key="${escapeHtml(item.chapterKey)}"`,
+          )}
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+
+function questionPackMarkup(pack) {
+  const mastered = pack.items.filter((item) => state.progress.questionStatus[item.id] === "mastered").length;
+  const reviewing = pack.items.filter((item) => state.progress.questionStatus[item.id] === "reviewing").length;
+
+  return `
+    <article class="question-pack">
+      <div class="prep-card__header">
+        <div>
+          <p class="eyebrow">${escapeHtml(chapterLabel(pack.chapterNumber))}</p>
+          <h4>${escapeHtml(pack.title)}</h4>
+        </div>
+        <div class="chip-row">
+          <span class="chip">${pack.items.length} prompts</span>
+          <span class="chip ${mastered === pack.items.length ? "chip--teal" : ""}">Mastered ${mastered}/${pack.items.length}</span>
+          <span class="chip">${reviewing} reviewing</span>
+        </div>
+      </div>
+      <p>${escapeHtml(pack.description)}</p>
+      <p class="muted-line">
+        Best source folders: ${escapeHtml(pack.assignmentNames.join(", "))}
+      </p>
+      ${progressBarMarkup(mastered, pack.items.length)}
+      <div class="question-grid">
+        ${pack.items.map(questionLabItemMarkup).join("")}
+      </div>
+    </article>
   `;
 }
 
@@ -2003,6 +2395,19 @@ function buildSearchResults(query) {
     );
   }
 
+  for (const pack of state.data.examPrep.questionPacks) {
+    pushResult(
+      [pack.title, pack.description, ...pack.assignmentNames, ...pack.items.flatMap((item) => [item.excerpt, item.transcript])],
+      {
+        eyebrow: `${chapterLabel(pack.chapterNumber)} Screenshot Lab`,
+        title: pack.title,
+        body: pack.description,
+        tags: ["real prompts", `${pack.items.length} questions`],
+        routeAttrs: `data-route="exam" data-section="questions"`,
+      },
+    );
+  }
+
   for (const pack of state.data.examPrep.drillPacks) {
     pushResult(
       [pack.title, pack.description, ...pack.items.flatMap((item) => [item.prompt, ...item.checkpoints])],
@@ -2095,6 +2500,7 @@ function renderExamPrep() {
   const prep = state.data.examPrep;
   const progress = progressSnapshot();
   const focus = focusRecommendations();
+  const missions = buildStudyMissions();
 
   elements.topbarTitle.textContent = "Ultimate Exam Prep";
   elements.content.innerHTML = `
@@ -2111,9 +2517,11 @@ function renderExamPrep() {
             <span class="chip">${state.data.stats.knowledgeCheckCount} tracked knowledge checks</span>
             <span class="chip">${state.data.stats.formulaCount} formula cards</span>
             <span class="chip">${prep.flashcards.length} flashcards</span>
+            <span class="chip">${state.data.stats.questionLabCount} screenshot-lab prompts</span>
             <span class="chip">${prep.mockExams.length} mock exams</span>
           </div>
           <div class="assignment-links">
+            ${buttonCard("Mission Control", "Get the highest-value next steps based on your current weak spots.", `data-route="exam" data-section="missions"`)}
             ${buttonCard("Study System", "Follow the three-pass prep structure from first pass to final review.", `data-route="exam" data-section="plan"`)}
             ${buttonCard("Formula Deck", "Drill the equations and when to use them.", `data-route="exam" data-section="formulas"`)}
             ${buttonCard("Mock Exams", "Run cumulative, self-scored exam practice.", `data-route="exam" data-section="mocks"`)}
@@ -2152,18 +2560,28 @@ function renderExamPrep() {
         ${progressMetricMarkup(`${progress.solidKnowledge}/${state.data.stats.knowledgeCheckCount}`, "Locked Checks", "Chapter prompts already rated as solid.")}
         ${progressMetricMarkup(`${progress.solidFormulas}/${state.data.stats.formulaCount}`, "Solid Formulas", "Formula-deck cards you can write from memory.")}
         ${progressMetricMarkup(`${progress.solidFlashcards}/${prep.flashcards.length}`, "Solid Flashcards", "Recall cards that no longer feel shaky.")}
+        ${progressMetricMarkup(`${progress.masteredQuestions}/${state.data.stats.questionLabCount}`, "Screenshot Lab", "Real homework-style prompts already marked mastered.")}
         ${progressMetricMarkup(`${progress.completedDrillPacks}/${prep.drillPacks.length}`, "Drills Done", "Cumulative mixed packs completed.")}
         ${progressMetricMarkup(`${progress.mockPercent}%`, "Mock Average", "Current percentage from self-scored mock responses.")}
       </div>
 
       <div class="prep-jump-grid">
+        ${buttonCard("Mission Control", "See the highest-value next moves the app recommends right now.", `data-route="exam" data-section="missions"`)}
         ${buttonCard("Chapter Readiness", "Rate every chapter and reopen the weak ones first.", `data-route="exam" data-section="readiness"`)}
         ${buttonCard("Equation Sheet", "Keep the real formula sheet inside the app while you practice.", `data-route="exam" data-section="equation"`)}
         ${buttonCard("Flashcards", "Train compact recall on concepts, formulas, and traps.", `data-route="exam" data-section="flashcards"`)}
+        ${buttonCard("Screenshot Lab", "Practice on real captured homework prompts and mark them mastered.", `data-route="exam" data-section="questions"`)}
         ${buttonCard("Drill Packs", "Mix chapters so your recall survives outside chapter order.", `data-route="exam" data-section="drills"`)}
         ${buttonCard("Exam Day", "Use the final checklist and rescue plan before the test.", `data-route="exam" data-section="exam-day"`)}
       </div>
     </article>
+
+    <section class="content prep-section" id="prep-section-missions">
+      <h3 class="section-title">Mission Control</h3>
+      <div class="mission-grid">
+        ${missions.map(missionCardMarkup).join("")}
+      </div>
+    </section>
 
     <section class="content prep-section" id="prep-section-plan">
       <h3 class="section-title">Study System</h3>
@@ -2210,6 +2628,13 @@ function renderExamPrep() {
       <h3 class="section-title">Flashcards</h3>
       <div class="knowledge-grid">
         ${prep.flashcards.map(flashcardMarkup).join("")}
+      </div>
+    </section>
+
+    <section class="content prep-section" id="prep-section-questions">
+      <h3 class="section-title">Screenshot Lab</h3>
+      <div class="question-pack-grid">
+        ${prep.questionPacks.map(questionPackMarkup).join("")}
       </div>
     </section>
 
@@ -2338,6 +2763,8 @@ function handleProgressAction(target) {
     state.progress.formulaStatus[target.dataset.itemId] = target.dataset.status;
   } else if (action === "set-flashcard-status") {
     state.progress.flashcardStatus[target.dataset.itemId] = target.dataset.status;
+  } else if (action === "set-question-status") {
+    state.progress.questionStatus[target.dataset.itemId] = target.dataset.status;
   } else if (action === "toggle-drill-status") {
     const packId = target.dataset.packId;
     state.progress.drillStatus[packId] = !state.progress.drillStatus[packId];
